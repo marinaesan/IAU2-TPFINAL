@@ -1,0 +1,599 @@
+---
+title: "Instrumentos de Análisis Urbano II: Trabajo Final"
+author: "Marina Santamaria"
+date: "2022-11-11"
+output: html_document
+---
+
+# **"Impacto del cambio en los usos de suelo, en el incremento de los niveles de emisión de GEI en la Argentina"**
+
+### Argentina ha perdido forestación autóctona en pos de favorecer desarrollos urbanos, proyecciones industriales y en particular, el emplazamiento de cultivos y ganado. Si bien en el país existe un marco normativo para la preservación de los bosques nativos, la regulación de las respectivas leyes resulta insuficiente. Los cambios de uso de suelo para posibilitar la producción agrícola-ganadera, representan la segunda fuente más importante de emisiones del país después del consumo de energía, lo que sumado a la ausencia de regulación complejiza la situación.
+
+**GITHUB**
+
+*Creo el proyecto TPF_IAU2, que vinculo al repositorio generado desde
+GITHUB. Abro un nuevo archivo desde R Markdown que guardo en el proyecto
+de referencia.*
+
+**RMarkdown**
+
+*Cargo las librerías a utilizar.*
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(skimr)
+library(tibble)
+library(tidyr)
+library(dplyr)
+```
+
+**CARGA DE DATOS**
+
+### Las emisiones de gases de efecto invernadero (GEI) se generan tanto de la explotación agrícola ganadera, como de las emisiones de CO2 causadas por la conversión de los ecosistemas, en su mayoría tierras forestales y naturales, al uso agrícola de las mismas.
+
+### Analizo las emisiones de GEI originadas por la producción agrícola y de actividades asociadas al uso de la tierra a nivel mundial.
+
+*Descargo la base de datos sobre las emisiones de GEI, del sitio web de la Organización para la Agricultura y la Alimentación (FAO). Fuente:<https://www.fao.org/faostat/es/#data>)*
+
+```{r}
+gei_global<-read.csv(file ="DATA/FAOSTAT_data_en_emissions.csv",
+                         stringsAsFactors = TRUE,
+                  encoding = "UTF-8")
+```
+
+*Reviso el resumen de la información estadística de las variables del
+data frame.*
+
+```{r}
+skim(gei_global)
+```
+
+```{r}
+class(gei_global)
+```
+
+```{r}
+typeof(gei_global)
+```
+
+```{r}
+str(gei_global)
+```
+
+**ORDENAR Y PROCESAR DATOS**
+
+*Selecciono las variables de interés para analizar la información.*
+
+```{r}
+gei_global_1 <- gei_global%>%
+select(Area,Element,Item,Year,ValueA)%>%
+drop_na()
+```
+
+*Renombro las variables.*
+
+```{r}
+gei_global_2 <- gei_global_1%>%
+rename(Pais="Area",Tipo_de_Emision="Element",Origen="Item",Año="Year",KToneladas_CO2="ValueA")
+```
+
+*Calculo las cantidades totales de emisiones por año.*
+
+```{r}
+gei_global_3 <- gei_global_2%>%
+group_by(Pais,Año) %>%
+summarise(Total_KT_CO2=sum(KToneladas_CO2, na.rm = TRUE))
+```
+
+```{r}
+str(gei_global_3)
+```
+
+*Pivoteo los datos de largo a ancho.*
+
+```{r}
+gei_global_4 <- gei_global_3 %>%
+pivot_wider(names_from ="Año", values_from ="Total_KT_CO2") 
+```
+
+*Obtengo el promedio de las emisiones por año.*
+
+```{r}
+gei_promedio_global <- gei_global_4 %>%
+mutate(Promedio = rowMeans(across(where(is.numeric)), 
+        na.rm = TRUE))%>%
+mutate(Promedio_Round=round(Promedio, digits =2 ))
+```
+
+*Obtengo los primeros 20 países, con los promedios de emisión más
+altos.*
+
+```{r}
+gei_20_paises <- gei_promedio_global %>%
+select(Pais:Promedio_Round)%>%
+group_by(Promedio_Round)%>%
+arrange(desc(Promedio_Round)) %>%
+head(20)
+```
+
+**GRÁFICOS**
+
+*Represento los resultados obtenidos a través de un gráfico de puntos.*
+
+```{r}
+ggplot(gei_20_paises)+
+geom_point(aes(x = Pais, y = Promedio_Round, size = Promedio_Round, color= Promedio_Round))+
+coord_flip()+
+labs(title = "Primeros 20 países con mayores emisiones de GEI", subtitle = "(GEI producto de la explotación agrícola-ganadera)",
+caption="Fuente: https://www.fao.org/faostat/es/#data",x="Países", y = "Kilotoneladas",size="Niveles de emisión", color="")
+```
+
+
+*Represento el total de emisiones por año a través de un gráfico de puntos.*
+
+```{r}
+ggplot(gei_global_3)+
+geom_bar(aes(x=factor(Año), fill=Total_KT_CO2), fill ="cornflowerblue", bins=30)+
+labs(title = "Promedio de emisiones de GEI por año", subtitle = "Período:1990-2020",
+caption="Fuente: https://www.fao.org/faostat/es/#data",x="Años", y = "Kilotoneladas", color="Promedios")+
+theme(axis.text.x = element_text(angle = 90, hjust = 1),plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"))
+```
+
+
+**MAPEO**
+
+*Cargo las librerías a utilizar.*
+
+```{r}
+library(sf)
+library(car)
+library(mapdata)
+library(maps)
+library(ggmap)
+library(ggrepel)
+library(ggplot2)
+library(viridis)
+```
+
+*Descargo un mapa del mundo en formato geojson, para volcar los datos
+analizados.*
+
+```{r}
+map_mundo <- st_read("DATA/countries.geojson")
+head(map_mundo)
+```
+
+*Para poder vincular la información espacial con el data frame
+trabajado, renombro la variable ADMIN y recodifico los nombres de los
+países que presentan diferencias con respecto a los datos
+geoespaciales.*
+
+```{r}
+map_mundo_ <- map_mundo %>%
+rename(Pais = "ADMIN")
+```
+
+```{r}
+gei_global_5<-gei_promedio_global %>%
+select(Pais,Promedio_Round) %>%
+mutate(Pais=fct_recode(Pais,"Russia"="Russian Federation","Bolivia"="Bolivia (Plurinational State of)","Venezuela"="Venezuela (Bolivarian Republic of)","Iran"="Iran (Islamic Republic of)","United Kingdom"="United Kingdom of Great Britain and Northern Ireland"))
+```
+
+*Vinculo la información geoespacial con el data frame trabajado.*
+
+```{r}
+gei_map_mundo <- left_join(map_mundo_, gei_global_5, by = "Pais")
+```
+
+*Realizo un mapa coroplético para representar cartográficamente el
+promedio de emisiones de GEI a nivel mundial.*
+
+```{r}
+ggplot()+
+geom_sf(data = gei_map_mundo, aes(fill=Promedio_Round))+
+scale_fill_gradient(low="khaki2", high="deeppink4")+
+theme_minimal() +
+coord_sf(datum = NA)+
+labs(title = "Promedio de emisiones de GEI a nivel mundial", subtitle = "Período:1990-2020",
+caption="Fuente: https://www.fao.org/faostat/es/#data", fill="Niveles de emisión")
+```
+
+
+### Analizo las emisiones de GEI originadas por la producción agrícola y de actividades asociadas al uso de la tierra a nivel regional (América del Sur).
+
+*Descargo la base de datos sobre las emisiones de GEI correspondinte a la región de América de Sur, del sitio web de la Organización para la Agricultura y la Alimentación (FAO).Fuente:<https://www.fao.org/faostat/es/#data>)*
+
+```{r}
+gei_asur<-read.csv(file ="DATA/FAOSTAT_data_es_emisiones_alyc.csv",
+                         stringsAsFactors = TRUE,
+                  encoding = "UTF-8")
+```
+
+*Reviso el resumen de la información estadística de las variables del
+data frame.*
+
+```{r}
+skim(gei_asur)
+```
+
+*Selecciono las variables de interés para analizar la información.*
+
+```{r}
+gei_asur_1 <- gei_asur%>%
+select(Área,Elemento,Producto,Año,Valor)%>%
+drop_na()
+```
+
+*Renombro las variables seleccionadas para procesar los datos.*
+
+```{r}
+gei_asur_2<- gei_asur_1%>%
+rename(Pais="Área",Tipo_de_Emision="Elemento",Origen="Producto",KToneladas_CO2="Valor")%>%
+mutate(Pais = fct_recode(Pais,"Venezuela"="Venezuela (República Bolivariana de)", "Bolivia"="Bolivia (Estado Plurinacional de)","Islas Malvinas"="Islas Malvinas (Falkland Islands)"))
+```
+
+*Obtengo el total de emisiones por país y por año.*
+
+```{r}
+gei_asur_3<-gei_asur_2%>%
+group_by(Pais,Año) %>%
+summarise(Total_KT_CO2=sum(KToneladas_CO2, na.rm = TRUE))%>%
+mutate(Total_KT_CO2_Round=round(Total_KT_CO2,digits =1))
+```
+
+*Represento el total de emisiones registradas en la región de America del Sur.*
+
+```{r}
+ggplot(gei_asur_3)+
+geom_histogram(aes(x =Total_KT_CO2),fill= "cornflowerblue",bins = 30)+
+labs(title = "América del Sur: GEI producto de la explotación agrícola-ganadera ", caption="Fuente: https://www.fao.org/faostat/es/#data", x = "Niveles de emisión", y ="")+
+theme(plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=8))
+```
+
+
+*Represento el total de emisiones por país.*
+
+```{r}
+ggplot(gei_asur_3)+
+geom_col(aes(x = Pais, y = Total_KT_CO2), fill = "mediumspringgreen", alpha = 0.6) +
+geom_hline(yintercept = 0)+ 
+coord_flip() +
+labs(title = "Amárica del Sur: Emisiones de GEI por país", caption="Fuente: https://www.fao.org/faostat/es/#data", fill="Niveles de emisión", x ="Países", y ="Niveles de emisión")+
+theme(plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=8))
+```
+
+
+*Represento el total de emisiones durante el período de 1990-2019, diferenciado por país.*
+
+```{r}
+ggplot(gei_asur_3)+
+geom_col(aes(x = Año, y = Total_KT_CO2, fill= factor(Año)))+
+scale_fill_viridis_d(option="cividis")+
+theme(axis.text.x = element_blank())+
+facet_wrap(~Pais)+
+labs(title = "Evolución de emisiones de GEI por año",
+subtitle = "América del Sur: Comparativa por país",
+caption ="Fuente: https://www.fao.org/faostat/es/#data", x = "", y = "Niveles de emisión",
+fill= "Años (1990-2019)")+
+theme(strip.text.x = element_text(size = 8),plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=8))
+```
+
+
+```{r}
+gei_asur_4 <- gei_asur_3%>%
+filter(Pais%in% c("Argentina","Brasil","Chile","Bolivia","Colombia","Ecuador","Paraguay","Peru","Uruguay","Venezuela") & Año >= 1995)
+```
+
+*Represento el total de emisiones por país.*
+
+```{r}
+ggplot(gei_asur_4) +
+geom_jitter(aes(x = Pais, y = Total_KT_CO2, color= Pais), width = .5,alpha = .5) +
+geom_hline(yintercept = 0, col = "red") +
+labs(title = "Emisiones en los países de la región",
+subtitle = "Período: 1995-2019",
+caption ="Fuente: https://www.fao.org/faostat/es/#data", x = "", y = "Niveles de emisión",
+fill= "Países", color="Paises")+
+theme(plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"), plot.caption=element_text(size=8))
+```
+
+
+*Represento el total de emisiones por año de cada país de la región.*
+
+```{r}
+ggplot(gei_asur_4,aes(x=Año, y=Total_KT_CO2, color=Pais, group =Pais))+
+geom_line()+ 
+theme(axis.text.x = element_text(angle = 0, hjust = 1))+
+labs(title = "Evolución de las emisiones en los países de la región",
+subtitle = "Período: 1995-2019",
+caption ="Fuente: https://www.fao.org/faostat/es/#data", x = "", y = "Niveles de emisión",
+fill= "Países", color="Paises")+
+theme(plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=8))
+```
+
+
+```{r}
+library(dplyr)
+library(tidyr)
+```
+
+### Analizo las emisiones de GEI en Argentina.
+
+*Descargo la base de datos sobre las emisiones de gases de efecto invernadero en la Argentina, de "Datos Argentina". Fuente: https://www.datos.gob.ar/dataset/ambiente-indicadores-emisiones-gases-efecto-invernadero-gei*
+
+```{r}
+arg_gei_TOTAL<-read.csv(file ="DATA/emisiones-gei-por-sector_.csv",
+                         stringsAsFactors = TRUE,
+                  encoding = "UTF-8")
+```
+
+```{r}
+ggplot(arg_gei_TOTAL,aes(x=emisiones_gei_anio, y=emisiones_gei, fill=emisiones_gei_sector))+
+geom_col()+ 
+labs(title ="Emisiones de GEI (totales) a nivel nacional",
+subtitle = "Período: 1990-2018",
+caption = "Fuente: https://www.datos.gob.ar/dataset/ambiente-indicadores-emisiones
+-gases-efecto-invernadero-gei", x = "Años", y = "Niveles de emisión", fill= "Países")+
+theme(plot.caption=element_text(size=6))
+```
+
+
+```{r}
+arg_gei <- gei_asur_4%>% 
+filter(Pais == "Argentina")
+```
+
+```{r}
+ggplot(arg_gei,aes(x=Año, y=Total_KT_CO2, color=Pais, group =Pais))+
+geom_line() + 
+labs(title ="Argentina: GEI producto de la explotación agrícola-ganadera",
+subtitle = "Período: 1995-2020",
+caption = "Fuente: https://www.fao.org/faostat/es/#data", x = "", y = "Niveles de emisión", color= "País")+
+theme(plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=8))
+```
+
+
+```{r}
+arg_gei_1<-gei_asur_2%>%
+filter(Pais=="Argentina")%>%
+select(Tipo_de_Emision,Origen,Año,KToneladas_CO2)
+```
+
+
+```{r}
+arg_gei_2 <- arg_gei_1 %>% mutate(Año=as.factor(Año))
+```
+
+
+```{r}
+ggplot(arg_gei_1)+
+geom_bar(aes(x=Tipo_de_Emision, fill=KToneladas_CO2), fill ="lightcoral",alpha=.9, bins=30)+
+labs(title = "Niveles según Tipo de Emisión", caption="Fuente: https://www.fao.org/faostat/es/#data",x="", y = "")+
+theme(axis.text.x = element_text(angle = 45, hjust = 1),plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=8))
+```
+
+```{r}
+ggplot(arg_gei_1)+
+geom_bar(aes(x=Origen, fill=Tipo_de_Emision))+
+scale_fill_viridis_d(option = "magma")+
+coord_flip()+
+labs(title = "Niveles de emisión según fuente de origen", caption="Fuente: https://www.fao.org/faostat/es/#data",x="", y ="", fill= "Tipos de Emisión")+
+theme(axis.text.y = element_text(angle = 0, hjust = 1),axis.text.x = element_text(angle =45, hjust = .5), plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=8))
+```
+
+```{r}
+arg_gei_2<-arg_gei_1%>%
+group_by(Año, Tipo_de_Emision) %>%
+summarise(Total_KT_CO2=sum(KToneladas_CO2, na.rm = TRUE))
+ggplot(arg_gei_2)+
+geom_col(aes(x = factor(Año), y =Total_KT_CO2, fill=factor(Tipo_de_Emision)))+
+scale_fill_viridis_d(option = "magma")+
+coord_flip()+
+labs(title = "Niveles según tipo de emisión", subtitle = "Período: 1990-2019", caption="Fuente: https://www.fao.org/faostat/es/#data",x="Años", y ="", fill= "Tipos de Emisión")+
+theme(axis.text.y = element_text(angle = 0, hjust = 1), plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=8))
+```
+
+```{r}
+arg_gei_3<-arg_gei_1%>%
+group_by(Año, Origen) %>%
+summarise(Total_KT_CO2=sum(KToneladas_CO2, na.rm = TRUE))
+ggplot(arg_gei_3)+
+coord_flip()+
+geom_col(aes(x = factor(Año), y =Total_KT_CO2, fill=factor(Origen)))+
+labs(title = "Niveles según fuente de origen", subtitle = "Período: 1990-2019",
+     caption= "Fuente: https://www.fao.org/faostat/
+     es/#data",x="Años", y ="", fill= "Fuentes de Origen")+
+theme(axis.text.x = element_text(angle = 45, hjust = 1), plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.subtitle = element_text(size=7.5),plot.caption=element_text(size=6))
+```
+
+AFOLU, siglas en inglés de Agricultura, Ganadería, Forestación y otros
+Usos del Suelo
+
+IPCC Intergovernmental Panel on Climate Change Grupo Intergubernamental
+de Expertos sobre el Cambio Climático
+
+LULUCF (siglas en inglés de "uso de la tierra, cambio de uso de la
+tierra y selvicultura")
+
+on farm energy use la energía es consumida directamente por la
+agricultura
+
+Farm Gate se refiere a las emisiones causadas por el acto de cultivar
+antes de cualquier emisión de fábrica, procesamiento, transporte o
+distribución. Esto incluye insumos de fertilizantes, insumos de
+pesticidas y herbicidas, necesidades de combustible en la finca,
+labranza, cosecha mecanizada, necesidades de electricidad para el
+almacenamiento, así como cualquier procesamiento, enfriamiento o
+fermentación en la finca.
+
+```{r}
+arg_gei_4<-arg_gei_1%>%
+group_by(Tipo_de_Emision, Origen)%>%
+summarise(Total_KT_CO2=sum(KToneladas_CO2, na.rm = TRUE))
+ggplot(arg_gei_4)+
+geom_col(aes(x = Tipo_de_Emision, y =Total_KT_CO2, fill=factor(Tipo_de_Emision)))+
+facet_wrap(~Origen)+
+theme_gray()+
+scale_fill_viridis_d(option = "magma")+
+labs(title = "Emisiones según fuente de origen",
+subtitle = "Comparativa por Fuente de Origen",
+caption = "Fuente: https://data.buenosaires.gob.ar/dataset/espacios-verdes", x = "", y = "Nivel de emisiones",fill="Tipos de Emisión", x=NULL)+
+theme(strip.text.x = element_text(size = 7.5), axis.text.x = element_text(NA),plot.caption=element_text(size=8), plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"))
+```
+
+```{r}
+arg_gei_2018<-arg_gei_3 %>%
+filter(Año=="2018")
+```
+
+```{r}
+arg_agro<-read.csv(file ="DATA/Censo_Agro_2018.csv",
+                         stringsAsFactors = TRUE,
+                  encoding = "UTF-8")
+```
+
+```{r}
+str(arg_agro)
+head(arg_agro)
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+```
+
+```{r}
+arg_agro1<-arg_agro%>%
+mutate(Cultivo_Agro = rowSums(select(., Cultivos.anuales, Cultivos.perennes, Forrajeras.anuales,Forrajeras.perennes,Sin.discriminar,Bosques.y.montes.implantados),na.rm = TRUE))%>%
+select(Provincia,Cultivo_Agro,Pastizales,Bosques.y.montes.naturales,Superficie.apta.no.cultivada,Superficie.no.apta..1.,Caminos..parques.y.viviendas,Sin.discriminar.condici.f3.n.ni.uso)%>%
+rename(Bosques_naturales="Bosques.y.montes.naturales",Apta_No_cultivo="Superficie.apta.no.cultivada",No_apta="Superficie.no.apta..1.",Urbano="Caminos..parques.y.viviendas",Sin_discriminar="Sin.discriminar.condici.f3.n.ni.uso")%>%
+filter(!(Provincia=="Total del pais"))
+```
+
+```{r}
+arg_agro2 <- arg_agro1%>%
+mutate(Provincia=fct_recode(Provincia,"Santiago.del.Estero"="Santiago del Estero","Córdoba"="Cordoba","Buenos.Aires"="Buenos Aires",
+"Santa.Fe"="Santa Fe","Tucumán"="Tucuman","La.Rioja"="La Rioja","La.Pampa"="La Pampa", "San.Luis"="San Luis", "San.Juan"="San Juan","Neuquén"="Neuquen","Río.Negro"= "Rio Negro","Entre.Ríos"="Entre Rios", "Santa.Cruz"="Santa Cruz","Tierra.del.Fuego"=	"Tierra del Fuego"))
+```
+
+```{r}
+arg_agro3 <- arg_agro2%>%
+mutate(He_sum=rowSums(select(.,Cultivo_Agro,Pastizales,Bosques_naturales,Apta_No_cultivo,No_apta,Urbano,Sin_discriminar),na.rm = TRUE))
+```
+
+```{r}
+arg_agro4 <- arg_agro3%>%
+pivot_longer(cols = c(Cultivo_Agro:Sin_discriminar), names_to = "Uso_Suelo", values_to = "Sup_Ha")%>%
+mutate(He_promedio=(Sup_Ha/He_sum)*100)%>%
+mutate(He_promedioR=round(He_promedio, digits =2)) 
+```
+
+```{r}
+library(devtools)
+```
+
+```{r}
+devtools::install_github("https://github.com/electorArg/geofaceteAR")
+```
+
+```{r}
+library(geofacet)
+```
+
+```{r}
+geofacet::argentina_grid2%>%
+grid_preview()
+```
+
+```{r}
+head(argentina_grid2)
+```
+
+
+
+```{r}
+ggplot(arg_agro4,aes(Uso_Suelo,He_promedioR, fill =Uso_Suelo )) +
+geom_col(alpha = 1, width =.9) +
+  theme_minimal()+
+coord_flip()+
+facet_geo(~ Provincia, grid = argentina_grid2)+
+labs(title = "Argentina: Usos de Suelo por provincia", caption ="Fuente: https://data.buenosaires.gob.ar/dataset/espacios-verdes",fill= "Usos de Suelo",
+       x = NULL, 
+       y = "Hectareas") +
+theme(axis.title.x = element_blank(),
+strip.text.x = element_text(),
+plot.caption=element_text(size=6),
+axis.text.y = element_text(angle = 45, hjust = 1, size = 2),
+plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"))
+```
+
+```{r}
+
+```
+
+
+
+
+
+
+Es posible evidenciar el registro de gases de efecto invernadero, tanto
+de emisión directa como indirecta.
+
+CH4 (Metano). Este gas se produce principalmente de actividades
+agricolas ganaderas como el cultivo de arroz o la digestión de animales.
+Es un gas bastante potente que favorece el calentamiento global, ya que
+cada kilogramo del mismo, calienta más que el dióxido de carbono. Sin
+embargo, al existir mucha menor cantidad de CH4 que de CO2, el metano no
+hace tanto daño e influye en menor medida en el efecto invernadero.
+
+CO2 (Dióxido de Carbono). Principal gas del efecto invernadero, que se
+produce principalmemte de la combustión de energías fósiles. Al
+respecto, los complejos industriales y el sector energético son
+responsables de la mayor parte de las emisiones de dióxido de carbono.
+Sin embargo, otra fuente de emisión importante son los procesos
+fotosintéticos y los incendios forestales, ya que se produce la quema de
+combustibles fósiles (madera y biomasa fundamentalmente).
+
+Con respecto a con un 91,8 % del total, y dentro del mismo, el sector
+transporte figura con el 29,9 %, debido fundamentalmente a la quema de
+gas, gasolina y otros derivados del petróleo. La industria del cemento y
+las plantas de incineración de residuos representan el 6,4 % del total
+emitido, y como fuentes minoritarias, se encuentran la industria química
+y la industria metalúrgica con un 1,8 %.
+
+N2O (Óxido Nitroso). Gas vólatil, que se origina de procesos llevados a
+cabo en agricultura intensiva, quema de biomasa y combustibles fósiles,
+por el uso de fertilizantes nitrogenados y la deforestación.
+
+### **SUPERFICIES PROTEGIDAS**
+
+### **INCENDIOS**
+
+### **NORMATIVAS**
+
+
+
+Estimaciones agricolas Buenos Aires
+
+La base de datos de emisiones de FAOSTAT proporciona una imagen completa
+del metano (CH4), nitroso Emisiones y remociones de óxido (N2O) y
+dióxido de carbono (CO2) de la producción agrícola y actividades
+asociadas de uso de la tierra a nivel nacional, regional y mundial.
+Ayuda a documentar la Principales tendencias e impactos de la
+alimentación y la agricultura en los gases de efecto invernadero (GEI)
+atmosféricos concentraciones durante el período 1961-2018. El uso de
+datos como insumo para la producción agrícola y ganadera informados por
+los países a la FAO, utilizando las directrices para los inventarios
+nacionales de GEI de la Panel Internacional sobre el Cambio Climático
+(IPCC, 2006) para estimar las emisiones. Este resumen analítico se
+centra en las tendencias generales durante el período 2000-2018.
+Emisiones por incendios de biomasa forestal y la quema de suelos
+orgánicos en los trópicos húmedos está incluida en estas estimaciones.
+Más en profundidad análisis sobre las emisiones y absorciones de GEI
+para la ganadería, los bosques y la degradación de los suelos orgánicos
+se analizan en otros informes y publicaciones revisadas por pares.
+
