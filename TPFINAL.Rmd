@@ -33,9 +33,9 @@ library(dplyr)
 
 **CARGA DE DATOS**
 
-### Las emisiones de gases de efecto invernadero (GEI) se generan tanto de la explotación agrícola ganadera, como de las emisiones de CO2 causadas por la conversión de los ecosistemas, en su mayoría tierras forestales y naturales, al uso agrícola de las mismas.
+#### Las emisiones de gases de efecto invernadero (GEI) se generan tanto de la explotación agrícola ganadera, como de las emisiones de CO2 causadas por la conversión de los ecosistemas, en su mayoría tierras forestales y naturales, al uso agrícola de las mismas.
 
-### Analizo las emisiones de GEI originadas por la producción agrícola y de actividades asociadas al uso de la tierra a nivel mundial.
+#### Analizo las emisiones de GEI originadas por la producción agrícola y de actividades asociadas al uso de la tierra a nivel mundial.
 
 *Descargo la base de datos sobre las emisiones de GEI, del sitio web de la Organización para la Agricultura y la Alimentación (FAO). Fuente:<https://www.fao.org/faostat/es/#data>)*
 
@@ -446,11 +446,11 @@ facet_wrap(~Origen)+
 theme_gray()+
 scale_fill_viridis_d(option = "magma")+
 scale_y_continuous(labels=scales::comma)+  
-  
 labs(title = "Emisiones según fuentes de origen",
 subtitle = "Comparativa",
 caption = "Fuente: https://data.buenosaires.gob.ar/dataset/espacios-verdes", x = "", y = "Nivel de emisiones",fill="Tipos de Emisión", x=NULL)+
-theme(strip.text.x = element_text(size = 5.7),legend.text = element_text (size = 6), plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=7),
+theme(strip.text.x = element_text(size = 5.7),legend.text = element_text (size = 6), plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),
+plot.caption=element_text(size=7),
 axis.text.x = element_blank(),
 axis.ticks.x = element_blank(),
 axis.text.y = element_blank(),
@@ -505,6 +505,10 @@ mutate(He_promedio=(Sup_Ha/He_sum)*100)%>%
 mutate(He_promedioR=round(He_promedio, digits =2)) 
 ```
 
+
+
+
+
 ```{r}
 library(devtools)
 ```
@@ -529,29 +533,32 @@ head(argentina_grid2)
 
 
 ```{r}
-ggplot(arg_agro4,aes(Uso_Suelo,He_promedioR, fill =Uso_Suelo )) +
+ggplot(arg_agro4,aes(Uso_Suelo,factor(He_promedioR), fill =Uso_Suelo )) +
 geom_col(alpha = 1, width =.9) +
-  theme_minimal()+
+theme_minimal()+
 coord_flip()+
-facet_geo(~ Provincia, grid = argentina_grid2)+
+facet_geo(~ Provincia, grid = argentina_grid2)+ 
+  
+
+
+  
+
 labs(title = "Argentina: Usos de Suelo por provincia", caption ="Fuente: https://data.buenosaires.gob.ar/dataset/espacios-verdes",fill= "Usos de Suelo",
-       x = NULL, 
-       y = "Hectareas") +
-theme(axis.title.x = element_blank(),
-strip.text.x = element_text(),
-plot.caption=element_text(size=6),
-axis.text.y = element_text(angle = 45, hjust = 1, size = 2),
+       x = "", 
+       y = "") +
+  
+  
+theme(
+strip.text.x = element_text(size = 6),
+plot.caption = element_text(size=6),
+axis.text.x = element_blank(),
+axis.ticks.x = element_blank(),
+axis.text.y = element_blank(),
+axis.ticks.y = element_blank(),
+
+
 plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"))
 ```
-
-
-plotl()
-legend("topright",
-       legend = c("J0", "J2"),
-       lty = c(1, 2),
-       col = c(2, 3),
-       cex = 1.5, # Cambiar el tamaño
-       lwd = 2)
 
 ```{r}
 
