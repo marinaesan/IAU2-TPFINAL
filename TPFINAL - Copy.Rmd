@@ -508,7 +508,7 @@ mutate(He_promedioR=round(He_promedio, digits =2))
 ```{r}
 ggplot(arg_agro4) + 
   geom_histogram(bins = 50, aes(x = He_promedioR, fill = Uso_Suelo), color = 'black') + 
-  facet_grid(Uso_Suelo~., scales = 'free') +
+  facet_grid(cut~., scales = 'free') +
   xlab("Carat") + 
   ylab("Frecuencia") + 
   ggtitle("Distribución de la variable Carat para los distintos Cut") +
