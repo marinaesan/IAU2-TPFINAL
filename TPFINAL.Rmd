@@ -371,9 +371,10 @@ arg_gei_2 <- arg_gei_1 %>% mutate(Año=as.factor(Año))
 
 ```{r}
 ggplot(arg_gei_1)+
-geom_bar(aes(x=Tipo_de_Emision, fill=KToneladas_CO2), fill ="lightcoral",alpha=.9, bins=30)+
+geom_bar(aes(x=Tipo_de_Emision, fill=KToneladas_CO2), fill ="lightcoral", bins=30)+
+coord_flip()+
 labs(title = "Niveles según Tipo de Emisión", caption="Fuente: https://www.fao.org/faostat/es/#data",x="", y = "")+
-theme(axis.text.x = element_text(angle = 45, hjust = 1),plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=8))
+theme(axis.text.x = element_text(angle = 0, hjust = 1, size = 7),plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=8))
 ```
 
 ```{r}
@@ -382,7 +383,7 @@ geom_bar(aes(x=Origen, fill=Tipo_de_Emision))+
 scale_fill_viridis_d(option = "magma")+
 coord_flip()+
 labs(title = "Niveles de emisión según fuente de origen", caption="Fuente: https://www.fao.org/faostat/es/#data",x="", y ="", fill= "Tipos de Emisión")+
-theme(axis.text.y = element_text(angle = 0, hjust = 1),axis.text.x = element_text(angle =45, hjust = .5), plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=8))
+theme(axis.text.y = element_text(angle = 0, hjust = 1, size = 7),axis.text.x = element_text(size = 7), plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=8))
 ```
 
 ```{r}
@@ -394,21 +395,25 @@ geom_col(aes(x = factor(Año), y =Total_KT_CO2, fill=factor(Tipo_de_Emision)))+
 scale_fill_viridis_d(option = "magma")+
 coord_flip()+
 labs(title = "Niveles según tipo de emisión", subtitle = "Período: 1990-2019", caption="Fuente: https://www.fao.org/faostat/es/#data",x="Años", y ="", fill= "Tipos de Emisión")+
-theme(axis.text.y = element_text(angle = 0, hjust = 1), plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=8))
+theme(axis.text.y = element_text(angle = 0, hjust = 1, size = 7),axis.text.x = element_text(size=7), plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=8))
 ```
+
+
 
 ```{r}
 arg_gei_3<-arg_gei_1%>%
 group_by(Año, Origen) %>%
 summarise(Total_KT_CO2=sum(KToneladas_CO2, na.rm = TRUE))
+
 ggplot(arg_gei_3)+
+geom_col(mapping = aes(x = factor (Año), y = Total_KT_CO2, fill = factor(Origen)))+ 
 coord_flip()+
-geom_col(aes(x = factor(Año), y =Total_KT_CO2, fill=factor(Origen)))+
 labs(title = "Niveles según fuente de origen", subtitle = "Período: 1990-2019",
-     caption= "Fuente: https://www.fao.org/faostat/
-     es/#data",x="Años", y ="", fill= "Fuentes de Origen")+
-theme(axis.text.x = element_text(angle = 45, hjust = 1), plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.subtitle = element_text(size=7.5),plot.caption=element_text(size=6))
+     caption= "Fuente: https://www.fao.org/faostat/es/#data",x="Años", y ="", fill= "")+
+scale_y_continuous(labels=scales::comma)+
+theme(legend.text = element_text (size = 7), axis.text.x = element_text(angle = 0, hjust = 1, size = 7),axis.text.y = element_text(size = 7), plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.subtitle = element_text(size=7.5),plot.caption=element_text(size=7))
 ```
+
 
 AFOLU, siglas en inglés de Agricultura, Ganadería, Forestación y otros
 Usos del Suelo
@@ -434,16 +439,24 @@ fermentación en la finca.
 arg_gei_4<-arg_gei_1%>%
 group_by(Tipo_de_Emision, Origen)%>%
 summarise(Total_KT_CO2=sum(KToneladas_CO2, na.rm = TRUE))
+
 ggplot(arg_gei_4)+
-geom_col(aes(x = Tipo_de_Emision, y =Total_KT_CO2, fill=factor(Tipo_de_Emision)))+
+geom_col(aes(x =Tipo_de_Emision, y=Total_KT_CO2, fill=factor(Tipo_de_Emision)))+
 facet_wrap(~Origen)+
 theme_gray()+
 scale_fill_viridis_d(option = "magma")+
-labs(title = "Emisiones según fuente de origen",
-subtitle = "Comparativa por Fuente de Origen",
+scale_y_continuous(labels=scales::comma)+  
+  
+labs(title = "Emisiones según fuentes de origen",
+subtitle = "Comparativa",
 caption = "Fuente: https://data.buenosaires.gob.ar/dataset/espacios-verdes", x = "", y = "Nivel de emisiones",fill="Tipos de Emisión", x=NULL)+
-theme(strip.text.x = element_text(size = 7.5), axis.text.x = element_text(NA),plot.caption=element_text(size=8), plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"))
+theme(strip.text.x = element_text(size = 5.7),legend.text = element_text (size = 6), plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=7),
+axis.text.x = element_blank(),
+axis.ticks.x = element_blank(),
+axis.text.y = element_blank(),
+axis.ticks.y = element_blank())
 ```
+
 
 ```{r}
 arg_gei_2018<-arg_gei_3 %>%
@@ -531,6 +544,15 @@ axis.text.y = element_text(angle = 45, hjust = 1, size = 2),
 plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"))
 ```
 
+
+plotl()
+legend("topright",
+       legend = c("J0", "J2"),
+       lty = c(1, 2),
+       col = c(2, 3),
+       cex = 1.5, # Cambiar el tamaño
+       lwd = 2)
+
 ```{r}
 
 ```
@@ -597,3 +619,14 @@ Más en profundidad análisis sobre las emisiones y absorciones de GEI
 para la ganadería, los bosques y la degradación de los suelos orgánicos
 se analizan en otros informes y publicaciones revisadas por pares.
 
+arg_gei_3<-arg_gei_1%>%
+group_by(Año, Origen) %>%
+summarise(Total_KT_CO2=sum(KToneladas_CO2, na.rm = TRUE))
+ggplot(arg_gei_3)+
+
+geom_col(aes(x = factor(Año), y =Total_KT_CO2, fill=factor(Origen)), bins=50)+
+facet_grid(Origen~., scales = 'free')
+labs(title = "Niveles según fuente de origen", subtitle = "Período: 1990-2019",
+     caption= "Fuente: https://www.fao.org/faostat/
+     es/#data",x="Años", y ="", fill= "")+
+theme(legend.position="none", axis.text.x = element_text(angle = 45, hjust = 1, size = 5),axis.text.y = element_text(size = 6), plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.subtitle = element_text(size=7.5),plot.caption=element_text(size=5))
