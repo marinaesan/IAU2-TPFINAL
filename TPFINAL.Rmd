@@ -33,9 +33,9 @@ library(dplyr)
 
 **CARGA DE DATOS**
 
-#### Las emisiones de gases de efecto invernadero (GEI) se generan tanto de la explotación agrícola ganadera, como de las emisiones de CO2 causadas por la conversión de los ecosistemas, en su mayoría tierras forestales y naturales, al uso agrícola de las mismas.
+Las emisiones de gases de efecto invernadero (GEI) se generan tanto de la explotación agrícola ganadera, como de las emisiones de CO2 causadas por la conversión de los ecosistemas, en su mayoría tierras forestales y naturales, al uso agrícola de las mismas.
 
-#### Analizo las emisiones de GEI originadas por la producción agrícola y de actividades asociadas al uso de la tierra a nivel mundial.
+Analizo las emisiones de GEI originadas por la producción agrícola y de actividades asociadas al uso de la tierra a nivel mundial.
 
 *Descargo la base de datos sobre las emisiones de GEI, del sitio web de la Organización para la Agricultura y la Alimentación (FAO). Fuente:<https://www.fao.org/faostat/es/#data>)*
 
@@ -45,8 +45,7 @@ gei_global<-read.csv(file ="DATA/FAOSTAT_data_en_emissions.csv",
                   encoding = "UTF-8")
 ```
 
-*Reviso el resumen de la información estadística de las variables del
-data frame.*
+*Reviso el resumen de la información estadística de las variables del data frame.*
 
 ```{r}
 skim(gei_global)
@@ -109,8 +108,7 @@ mutate(Promedio = rowMeans(across(where(is.numeric)),
 mutate(Promedio_Round=round(Promedio, digits =2 ))
 ```
 
-*Obtengo los primeros 20 países, con los promedios de emisión más
-altos.*
+*Obtengo los primeros 20 países, con los promedios de emisión más altos.*
 
 ```{r}
 gei_20_paises <- gei_promedio_global %>%
@@ -133,6 +131,9 @@ caption="Fuente: https://www.fao.org/faostat/es/#data",x="Países", y = "Kiloton
 ```
 
 
+Además de Estados Unidos, se observa que tanto Brasil como Argentina, se encuentran  entre los países de América que generan los niveles más altos de emisión de GEI producto de la actividad agrícola ganadera.
+
+
 *Represento el total de emisiones por año a través de un gráfico de puntos.*
 
 ```{r}
@@ -145,6 +146,7 @@ theme(axis.text.x = element_text(angle = 90, hjust = 1),plot.margin = margin(0.2
 
 
 **MAPEO**
+
 
 *Cargo las librerías a utilizar.*
 
@@ -159,18 +161,14 @@ library(ggplot2)
 library(viridis)
 ```
 
-*Descargo un mapa del mundo en formato geojson, para volcar los datos
-analizados.*
+*Descargo un mapa del mundo en formato geojson, para volcar los datos analizados.*
 
 ```{r}
 map_mundo <- st_read("DATA/countries.geojson")
 head(map_mundo)
 ```
 
-*Para poder vincular la información espacial con el data frame
-trabajado, renombro la variable ADMIN y recodifico los nombres de los
-países que presentan diferencias con respecto a los datos
-geoespaciales.*
+*Para poder vincular la información espacial con el data frame trabajado, renombro la variable ADMIN y recodifico los nombres de los países que presentan diferencias con respecto a los datos geoespaciales.*
 
 ```{r}
 map_mundo_ <- map_mundo %>%
@@ -189,8 +187,7 @@ mutate(Pais=fct_recode(Pais,"Russia"="Russian Federation","Bolivia"="Bolivia (Pl
 gei_map_mundo <- left_join(map_mundo_, gei_global_5, by = "Pais")
 ```
 
-*Realizo un mapa coroplético para representar cartográficamente el
-promedio de emisiones de GEI a nivel mundial.*
+*Realizo un mapa coroplético para representar cartográficamente el promedio de emisiones de GEI a nivel mundial.*
 
 ```{r}
 ggplot()+
@@ -203,7 +200,11 @@ caption="Fuente: https://www.fao.org/faostat/es/#data", fill="Niveles de emisió
 ```
 
 
-### Analizo las emisiones de GEI originadas por la producción agrícola y de actividades asociadas al uso de la tierra a nivel regional (América del Sur).
+A partir de la información obtenida, vinculo los datos procesados con el origen geografico de los mismos, con el objetivo de evidenciar el rango de emisiones de GEI, generadas a través de la producción agrícola y las actividades asociadas de uso de la tierra.
+
+
+A continuación, analizo las emisiones de GEI originadas por la producción agrícola y de actividades asociadas al uso de la tierra a nivel regional (América del Sur).
+
 
 *Descargo la base de datos sobre las emisiones de GEI correspondinte a la región de América de Sur, del sitio web de la Organización para la Agricultura y la Alimentación (FAO).Fuente:<https://www.fao.org/faostat/es/#data>)*
 
@@ -213,8 +214,7 @@ gei_asur<-read.csv(file ="DATA/FAOSTAT_data_es_emisiones_alyc.csv",
                   encoding = "UTF-8")
 ```
 
-*Reviso el resumen de la información estadística de las variables del
-data frame.*
+*Reviso el resumen de la información estadística de las variables del data frame.*
 
 ```{r}
 skim(gei_asur)
@@ -255,6 +255,9 @@ theme(plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(s
 ```
 
 
+La mayor parte de los países de la región, emiten semejantes cantidades de GEI, mientras que unos pocos superan los niveles promedio.
+
+
 *Represento el total de emisiones por país.*
 
 ```{r}
@@ -266,6 +269,8 @@ labs(title = "Amárica del Sur: Emisiones de GEI por país", caption="Fuente: ht
 theme(plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=8))
 ```
 
+
+Se observa claramente, la gran cantidad de emisiones de GEI que registra Brasil, seguida por Argentina.
 
 *Represento el total de emisiones durante el período de 1990-2019, diferenciado por país.*
 
@@ -281,6 +286,9 @@ caption ="Fuente: https://www.fao.org/faostat/es/#data", x = "", y = "Niveles de
 fill= "Años (1990-2019)")+
 theme(strip.text.x = element_text(size = 8),plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=8))
 ```
+
+
+Considerando la evolución del 
 
 
 ```{r}
@@ -363,11 +371,9 @@ filter(Pais=="Argentina")%>%
 select(Tipo_de_Emision,Origen,Año,KToneladas_CO2)
 ```
 
-
 ```{r}
 arg_gei_2 <- arg_gei_1 %>% mutate(Año=as.factor(Año))
 ```
-
 
 ```{r}
 ggplot(arg_gei_1)+
@@ -377,6 +383,21 @@ labs(title = "Niveles según Tipo de Emisión", caption="Fuente: https://www.fao
 theme(axis.text.x = element_text(angle = 0, hjust = 1, size = 7),plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=8))
 ```
 
+
+El registro de gases de efecto invernadero, permite identificar tanto
+gases de emisión directa como indirecta, además de los gases que se detallan seguidamente:
+
+CH4 (Metano), gas que se produce principalmente de actividades
+agricolas ganaderas como el cultivo de arroz o la digestión de animales. Favorece el calentamiento global, ya que cada kilogramo del mismo, calienta más que el dióxido de carbono. Sin embargo, al existir mucha menor cantidad de CH4 que de CO2, el metano no hace tanto daño e influye en menor medida en el efecto invernadero.
+
+CO2 (Dióxido de Carbono), principal gas del efecto invernadero, que se
+produce principalmemte de la combustión de energías fósiles. Los complejos industriales y el sector energético son responsables de la mayor parte de las emisiones de dióxido de carbono. Sin embargo, otra fuente de emisión importante son los procesos fotosintéticos y los incendios forestales, ya que se produce la quema de combustibles fósiles (madera y biomasa fundamentalmente).
+
+N2O (Óxido Nitroso), gas vólatil que se origina de procesos llevados a
+cabo en agricultura intensiva, quema de biomasa y combustibles fósiles,
+por el uso de fertilizantes nitrogenados y la deforestación.
+
+
 ```{r}
 ggplot(arg_gei_1)+
 geom_bar(aes(x=Origen, fill=Tipo_de_Emision))+
@@ -385,6 +406,7 @@ coord_flip()+
 labs(title = "Niveles de emisión según fuente de origen", caption="Fuente: https://www.fao.org/faostat/es/#data",x="", y ="", fill= "Tipos de Emisión")+
 theme(axis.text.y = element_text(angle = 0, hjust = 1, size = 7),axis.text.x = element_text(size = 7), plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=8))
 ```
+
 
 ```{r}
 arg_gei_2<-arg_gei_1%>%
@@ -397,7 +419,6 @@ coord_flip()+
 labs(title = "Niveles según tipo de emisión", subtitle = "Período: 1990-2019", caption="Fuente: https://www.fao.org/faostat/es/#data",x="Años", y ="", fill= "Tipos de Emisión")+
 theme(axis.text.y = element_text(angle = 0, hjust = 1, size = 7),axis.text.x = element_text(size=7), plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=8))
 ```
-
 
 
 ```{r}
@@ -414,6 +435,8 @@ scale_y_continuous(labels=scales::comma)+
 theme(legend.text = element_text (size = 7), axis.text.x = element_text(angle = 0, hjust = 1, size = 7),axis.text.y = element_text(size = 7), plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.subtitle = element_text(size=7.5),plot.caption=element_text(size=7))
 ```
 
+
+Analizando el origen de las emisiones, es posible
 
 AFOLU, siglas en inglés de Agricultura, Ganadería, Forestación y otros
 Usos del Suelo
@@ -507,15 +530,21 @@ mutate(He_promedioR=round(He_promedio, digits =2))
 
 ```{r}
 ggplot(arg_agro4) + 
-  geom_histogram(bins = 50, aes(x = He_promedioR, fill = Uso_Suelo), color = 'black') + 
-  facet_grid(Uso_Suelo~., scales = 'free') +
-  xlab("Carat") + 
-  ylab("Frecuencia") + 
-  ggtitle("Distribución de la variable Carat para los distintos Cut") +
-  theme_minimal()
+geom_histogram(aes(x = He_promedioR, fill = factor(Uso_Suelo)), color = "gray", bins = 30) + 
+facet_grid(Uso_Suelo~., scales = 'free')+
+theme_minimal()+
+labs(title = "Distribución de los Usos de Suelo a nivel nacional",
+subtitle = "Comparativa", caption = "Fuente: https://www.indec.gob.ar/indec/web/Nivel4-Tema-3-8-87", 
+x = "", y = "",fill="Usos de Suelo")+
+theme(legend.text = element_text (size = 8), 
+plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),
+plot.caption=element_text(size=7),
+axis.text.x = element_blank(),
+axis.ticks.x = element_blank(),
+axis.text.y = element_blank(),
+strip.text.y = element_blank(),
+axis.ticks.y = element_blank())
 ```
-
-
 
 
 ```{r}
@@ -559,23 +588,7 @@ plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"))
 
 
 
-Es posible evidenciar el registro de gases de efecto invernadero, tanto
-de emisión directa como indirecta.
 
-CH4 (Metano). Este gas se produce principalmente de actividades
-agricolas ganaderas como el cultivo de arroz o la digestión de animales.
-Es un gas bastante potente que favorece el calentamiento global, ya que
-cada kilogramo del mismo, calienta más que el dióxido de carbono. Sin
-embargo, al existir mucha menor cantidad de CH4 que de CO2, el metano no
-hace tanto daño e influye en menor medida en el efecto invernadero.
-
-CO2 (Dióxido de Carbono). Principal gas del efecto invernadero, que se
-produce principalmemte de la combustión de energías fósiles. Al
-respecto, los complejos industriales y el sector energético son
-responsables de la mayor parte de las emisiones de dióxido de carbono.
-Sin embargo, otra fuente de emisión importante son los procesos
-fotosintéticos y los incendios forestales, ya que se produce la quema de
-combustibles fósiles (madera y biomasa fundamentalmente).
 
 Con respecto a con un 91,8 % del total, y dentro del mismo, el sector
 transporte figura con el 29,9 %, debido fundamentalmente a la quema de
@@ -583,10 +596,6 @@ gas, gasolina y otros derivados del petróleo. La industria del cemento y
 las plantas de incineración de residuos representan el 6,4 % del total
 emitido, y como fuentes minoritarias, se encuentran la industria química
 y la industria metalúrgica con un 1,8 %.
-
-N2O (Óxido Nitroso). Gas vólatil, que se origina de procesos llevados a
-cabo en agricultura intensiva, quema de biomasa y combustibles fósiles,
-por el uso de fertilizantes nitrogenados y la deforestación.
 
 ### **SUPERFICIES PROTEGIDAS**
 
@@ -597,6 +606,11 @@ por el uso de fertilizantes nitrogenados y la deforestación.
 
 
 Estimaciones agricolas Buenos Aires
+
+
+
+La base de datos de 
+
 
 La base de datos de emisiones de FAOSTAT proporciona una imagen completa
 del metano (CH4), nitroso Emisiones y remociones de óxido (N2O) y
