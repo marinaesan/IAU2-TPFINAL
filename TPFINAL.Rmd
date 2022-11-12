@@ -5,15 +5,16 @@ date: "2022-11-11"
 output: html_document
 ---
 
-# **"Impacto del cambio en los usos de suelo, en el incremento de los niveles de emisión de GEI en la Argentina"**
+# **"Impacto del cambio en los usos de suelo, en el incremento de los niveles de emisión de GEI"**
 
-### Argentina ha perdido forestación autóctona en pos de favorecer desarrollos urbanos, proyecciones industriales y en particular, el emplazamiento de cultivos y ganado. Si bien en el país existe un marco normativo para la preservación de los bosques nativos, la regulación de las respectivas leyes resulta insuficiente. Los cambios de uso de suelo para posibilitar la producción agrícola-ganadera, representan la segunda fuente más importante de emisiones del país después del consumo de energía, lo que sumado a la ausencia de regulación complejiza la situación.
+### Argentina ha perdido forestación autóctona en pos de favorecer desarrollos urbanos, proyecciones industriales y en particular, el emplazamiento de cultivos y ganado. Si bien en el país existe un marco normativo para la preservación de los bosques nativos, la regulación de las respectivas leyes resulta insuficiente. Los cambios de uso de suelo para posibilitar la producción agrícola-ganadera, representan la segunda fuente más importante de emisiones del país después del consumo de energía.
+
+Las emisiones de gases de efecto invernadero (GEI) se generan tanto de la explotación agrícola ganadera, como de las emisiones de CO2 causadas por la conversión de los ecosistemas, en su mayoría tierras forestales y naturales, al uso agrícola de las mismas.
+
 
 **GITHUB**
 
-*Creo el proyecto TPF_IAU2, que vinculo al repositorio generado desde
-GITHUB. Abro un nuevo archivo desde R Markdown que guardo en el proyecto
-de referencia.*
+*Creo el proyecto IAU2-TPFINAL, que vinculo al repositorio generado desde GITHUB. Abro un nuevo archivo R Markdown y lo guardo en el proyecto de referencia.*
 
 **RMarkdown**
 
@@ -31,11 +32,9 @@ library(tidyr)
 library(dplyr)
 ```
 
+1. Analizo las emisiones de GEI originadas por la producción agrícola y de actividades asociadas al uso de la tierra a nivel mundial.
+
 **CARGA DE DATOS**
-
-Las emisiones de gases de efecto invernadero (GEI) se generan tanto de la explotación agrícola ganadera, como de las emisiones de CO2 causadas por la conversión de los ecosistemas, en su mayoría tierras forestales y naturales, al uso agrícola de las mismas.
-
-Analizo las emisiones de GEI originadas por la producción agrícola y de actividades asociadas al uso de la tierra a nivel mundial.
 
 *Descargo la base de datos sobre las emisiones de GEI, del sitio web de la Organización para la Agricultura y la Alimentación (FAO). Fuente:<https://www.fao.org/faostat/es/#data>)*
 
@@ -118,6 +117,7 @@ arrange(desc(Promedio_Round)) %>%
 head(20)
 ```
 
+
 **GRÁFICOS**
 
 *Represento los resultados obtenidos a través de un gráfico de puntos.*
@@ -131,7 +131,7 @@ caption="Fuente: https://www.fao.org/faostat/es/#data",x="Países", y = "Kiloton
 ```
 
 
-Además de Estados Unidos, se observa que tanto Brasil como Argentina, se encuentran  entre los países de América que generan los niveles más altos de emisión de GEI producto de la actividad agrícola ganadera.
+Además de Estados Unidos, se observa que tanto Brasil como Argentina, se encuentran entre los países de América que generan los niveles más altos de emisión de GEI producto de la actividad agrícola ganadera.
 
 
 *Represento el total de emisiones por año a través de un gráfico de puntos.*
@@ -146,7 +146,6 @@ theme(axis.text.x = element_text(angle = 90, hjust = 1),plot.margin = margin(0.2
 
 
 **MAPEO**
-
 
 *Cargo las librerías a utilizar.*
 
@@ -203,10 +202,10 @@ caption="Fuente: https://www.fao.org/faostat/es/#data", fill="Niveles de emisió
 A partir de la información obtenida, vinculo los datos procesados con el origen geografico de los mismos, con el objetivo de evidenciar el rango de emisiones de GEI, generadas a través de la producción agrícola y las actividades asociadas de uso de la tierra.
 
 
-A continuación, analizo las emisiones de GEI originadas por la producción agrícola y de actividades asociadas al uso de la tierra a nivel regional (América del Sur).
+2. Analizo las emisiones de GEI originadas por la producción agrícola y de actividades asociadas al uso de la tierra a nivel regional (América del Sur).
 
 
-*Descargo la base de datos sobre las emisiones de GEI correspondinte a la región de América de Sur, del sitio web de la Organización para la Agricultura y la Alimentación (FAO).Fuente:<https://www.fao.org/faostat/es/#data>)*
+*Descargo la base de datos sobre las emisiones de GEI, correspondinte a la región de América de Sur, del sitio web de la Organización para la Agricultura y la Alimentación (FAO).Fuente:<https://www.fao.org/faostat/es/#data>)*
 
 ```{r}
 gei_asur<-read.csv(file ="DATA/FAOSTAT_data_es_emisiones_alyc.csv",
@@ -255,8 +254,7 @@ theme(plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(s
 ```
 
 
-La mayor parte de los países de la región, emiten semejantes cantidades de GEI, mientras que unos pocos superan los niveles promedio.
-
+La mayor parte de los países de la región, emiten similares proporciones cantidades de GEI, mientras que unos pocos superan los niveles promedios.
 
 *Represento el total de emisiones por país.*
 
@@ -288,8 +286,9 @@ theme(strip.text.x = element_text(size = 8),plot.margin = margin(0.25, 1, 0.25, 
 ```
 
 
-Considerando la evolución del 
+Considerando la evolución de las emisiones entre los años 1990 y 2019, se observa cada caso por país. Tanto en Brasil como en Argentina los aumentos de emisión se dan hacia el año 2000, para descender a partir del 2010. 
 
+Filtro las observaciones desde el año 1995 para los pasíses de Argentina, Brasil, Chile, Bolivia, Colombia, Ecuador, Paraguay, Perú, Uruguay y Venezuela.
 
 ```{r}
 gei_asur_4 <- gei_asur_3%>%
@@ -306,9 +305,12 @@ labs(title = "Emisiones en los países de la región",
 subtitle = "Período: 1995-2019",
 caption ="Fuente: https://www.fao.org/faostat/es/#data", x = "", y = "Niveles de emisión",
 fill= "Países", color="Paises")+
-theme(plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"), plot.caption=element_text(size=8))
+theme(axis.text.x = element_text(size = 7),
+plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"), plot.caption=element_text(size=8))
 ```
 
+
+Las emisiones de GEI registradas en Brasil son superiores a las del resto de los países de las región, mientras que Chile, Uruguay y Ecuador presentan los indicadores de GEI más bajos. 
 
 *Represento el total de emisiones por año de cada país de la región.*
 
@@ -324,14 +326,16 @@ theme(plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(s
 ```
 
 
+Este gráfico permite precisar la fluctuación de las emisiones durante los años 1995 y 2020. Brasil muestra un crecimiento de las emisiones a partir del año 2000, con un fuerte descenso en el año 2010. Argentina, sigue la misma tendencia pero con valores de emisión más bajos en comparación con Brasil.
+
 ```{r}
 library(dplyr)
 library(tidyr)
 ```
 
-### Analizo las emisiones de GEI en Argentina.
+3. Analizo las emisiones de GEI TOTALES en Argentina.
 
-*Descargo la base de datos sobre las emisiones de gases de efecto invernadero en la Argentina, de "Datos Argentina". Fuente: https://www.datos.gob.ar/dataset/ambiente-indicadores-emisiones-gases-efecto-invernadero-gei*
+*Descargo la base de datos sobre las emisiones de gases de efecto invernadero totales en la Argentina, de "Datos Argentina". Fuente: https://www.datos.gob.ar/dataset/ambiente-indicadores-emisiones-gases-efecto-invernadero-gei*
 
 ```{r}
 arg_gei_TOTAL<-read.csv(file ="DATA/emisiones-gei-por-sector_.csv",
@@ -339,16 +343,22 @@ arg_gei_TOTAL<-read.csv(file ="DATA/emisiones-gei-por-sector_.csv",
                   encoding = "UTF-8")
 ```
 
+*Represento las emisiones totales de GEI a nivel nacional entre los años 1990 y 2018*
+
 ```{r}
 ggplot(arg_gei_TOTAL,aes(x=emisiones_gei_anio, y=emisiones_gei, fill=emisiones_gei_sector))+
 geom_col()+ 
 labs(title ="Emisiones de GEI (totales) a nivel nacional",
 subtitle = "Período: 1990-2018",
-caption = "Fuente: https://www.datos.gob.ar/dataset/ambiente-indicadores-emisiones
--gases-efecto-invernadero-gei", x = "Años", y = "Niveles de emisión", fill= "Países")+
-theme(plot.caption=element_text(size=6))
+caption = "F: https://www.datos.gob.ar/dataset/ambiente-indicadores-emisiones-gases-efecto-invernadero-gei", x = "Años", y = "Niveles de emisión", fill= "Fuentes")+
+theme(legend.text = element_text (size = 6.5),
+plot.caption=element_text(size=5.5))
 ```
 
+
+Entre los años 1990 y 2010, las fuentes que originan los mayores niveles de emisión de GEI son la producción de Energías y la Agricultura/Ganadería. Considerando las emisiones de GEI producto de las actividades agrícolas ganaderas, analizo los niveles de emisión en la Argentina.
+
+*Represento las emisiones durante los años 1995 y 2020 *
 
 ```{r}
 arg_gei <- gei_asur_4%>% 
@@ -364,6 +374,10 @@ caption = "Fuente: https://www.fao.org/faostat/es/#data", x = "", y = "Niveles d
 theme(plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=8))
 ```
 
+
+Como se ha observado, las emisiones aumentan considerablemente a partir del 2000, y comienzan a descender entre el 2008 y 2009.
+
+*Filtro los tipos de GEI identificados y las fuentes que dan origen a los mismos.*
 
 ```{r}
 arg_gei_1<-gei_asur_2%>%
@@ -398,6 +412,8 @@ cabo en agricultura intensiva, quema de biomasa y combustibles fósiles,
 por el uso de fertilizantes nitrogenados y la deforestación.
 
 
+*Analizo la composión de las emisiones, según los niveles y tipos de GEI según las fuentes de origen.*
+
 ```{r}
 ggplot(arg_gei_1)+
 geom_bar(aes(x=Origen, fill=Tipo_de_Emision))+
@@ -407,6 +423,8 @@ labs(title = "Niveles de emisión según fuente de origen", caption="Fuente: htt
 theme(axis.text.y = element_text(angle = 0, hjust = 1, size = 7),axis.text.x = element_text(size = 7), plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=8))
 ```
 
+
+*Considero los niveles y los tipos de GEI emitidos por año.*
 
 ```{r}
 arg_gei_2<-arg_gei_1%>%
@@ -419,7 +437,10 @@ coord_flip()+
 labs(title = "Niveles según tipo de emisión", subtitle = "Período: 1990-2019", caption="Fuente: https://www.fao.org/faostat/es/#data",x="Años", y ="", fill= "Tipos de Emisión")+
 theme(axis.text.y = element_text(angle = 0, hjust = 1, size = 7),axis.text.x = element_text(size=7), plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.caption=element_text(size=8))
 ```
+ 
+Las mayores emisiones de GEI son de CO2eq (emisiones equivalentes a CO2).
 
+*Considero los niveles y las fuentes de GEI emitidas por año.*
 
 ```{r}
 arg_gei_3<-arg_gei_1%>%
@@ -427,7 +448,7 @@ group_by(Año, Origen) %>%
 summarise(Total_KT_CO2=sum(KToneladas_CO2, na.rm = TRUE))
 
 ggplot(arg_gei_3)+
-geom_col(mapping = aes(x = factor (Año), y = Total_KT_CO2, fill = factor(Origen)))+ 
+geom_col(mapping = aes(x = factor (Año), y = Total_KT_CO2, fill = factor(Origen)),color = "gray")+ 
 coord_flip()+
 labs(title = "Niveles según fuente de origen", subtitle = "Período: 1990-2019",
      caption= "Fuente: https://www.fao.org/faostat/es/#data",x="Años", y ="", fill= "")+
@@ -436,27 +457,13 @@ theme(legend.text = element_text (size = 7), axis.text.x = element_text(angle = 
 ```
 
 
-Analizando el origen de las emisiones, es posible
+Analizando el origen de las emisiones de GEI en el país, es posible identificar un predominio de emisiones provenientes de tierras agrícolas, así como también de AFOLU (siglas en inglés para describir Agricultura, Ganadería y Forestación), siendo notable el incremento de las mismas entre los años 2001 y 2011.
 
-AFOLU, siglas en inglés de Agricultura, Ganadería, Forestación y otros
-Usos del Suelo
+Otras fuentes como el LULUCF (siglas en inglés de "uso de la tierra, cambio de uso de la tierra y selvicultura") y el Farm Gate (emisiones causadas por el acto de cultivar antes del procesamiento, transporte o distribución, como fertilizantes, insumos de pesticidas, herbicidas, necesidades de combustible en la finca, labranza, cosecha mecanizada, necesidades de electricidad para el
+almacenamiento, así como cualquier procesamiento, enfriamiento o fermentación en la finca) acumulan importantes niveles de emisión.
 
-IPCC Intergovernmental Panel on Climate Change Grupo Intergubernamental
-de Expertos sobre el Cambio Climático
 
-LULUCF (siglas en inglés de "uso de la tierra, cambio de uso de la
-tierra y selvicultura")
-
-on farm energy use la energía es consumida directamente por la
-agricultura
-
-Farm Gate se refiere a las emisiones causadas por el acto de cultivar
-antes de cualquier emisión de fábrica, procesamiento, transporte o
-distribución. Esto incluye insumos de fertilizantes, insumos de
-pesticidas y herbicidas, necesidades de combustible en la finca,
-labranza, cosecha mecanizada, necesidades de electricidad para el
-almacenamiento, así como cualquier procesamiento, enfriamiento o
-fermentación en la finca.
+*Para mayor claridad, faceteo los tipos de emisión por fuente de origen.*
 
 ```{r}
 arg_gei_4<-arg_gei_1%>%
@@ -481,10 +488,9 @@ axis.ticks.y = element_blank())
 ```
 
 
-```{r}
-arg_gei_2018<-arg_gei_3 %>%
-filter(Año=="2018")
-```
+El aumento de las emisiones supone un incremento de la explotación del suelo a través de las actividades agrícolas y ganaderas. Dicho aumento, se relacina con el creciente cambio en los usos del suelo para posibilitar la explotación agropecuaria. Analizo las superficies destinadas a los diferentes usos de suelo por provincia, a fin de identificar el predominio de tierras para la agricultura.  
+
+*Descargo la base de datos con las superficies de las parcelas por tipo de uso de la tierra del Censo Nacional Agropecuario 2018 (INDEC). Fuente: https://www.indec.gob.ar/indec/web/Nivel4-Tema-3-8-87. Limpio la base de datos y la guardo en formato csv.*
 
 ```{r}
 arg_agro<-read.csv(file ="DATA/Censo_Agro_2018.csv",
@@ -501,6 +507,8 @@ head(arg_agro)
 library(dplyr)
 library(ggplot2)
 ```
+
+*Ordeno los datos para obtener las supeficies totales según los usos de suelo, por provincia.*
 
 ```{r}
 arg_agro1<-arg_agro%>%
@@ -528,6 +536,8 @@ mutate(He_promedio=(Sup_Ha/He_sum)*100)%>%
 mutate(He_promedioR=round(He_promedio, digits =2)) 
 ```
 
+*Represento el promedio de superficie según los usos de suelo por provincia.*
+
 ```{r}
 ggplot(arg_agro4) + 
 geom_histogram(aes(x = He_promedioR, fill = factor(Uso_Suelo)), color = "gray", bins = 30) + 
@@ -535,22 +545,23 @@ facet_grid(Uso_Suelo~., scales = 'free')+
 theme_minimal()+
 labs(title = "Distribución de los Usos de Suelo a nivel nacional",
 subtitle = "Comparativa", caption = "Fuente: https://www.indec.gob.ar/indec/web/Nivel4-Tema-3-8-87", 
-x = "", y = "",fill="Usos de Suelo")+
+x = "Promedios", y = "",fill="Usos de Suelo")+
 theme(legend.text = element_text (size = 8), 
 plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),
 plot.caption=element_text(size=7),
-axis.text.x = element_blank(),
 axis.ticks.x = element_blank(),
 axis.text.y = element_blank(),
 strip.text.y = element_blank(),
 axis.ticks.y = element_blank())
 ```
 
+Además de los bosques naturales, predominan los cultivos agropecuarios y los pastizales.
+
+*Represnto las superficies según los usos del suelo por provincia, mediante geofacet. *
 
 ```{r}
 library(devtools)
 ```
-
 ```{r}
 devtools::install_github("https://github.com/electorArg/geofaceteAR")
 ```
@@ -564,7 +575,7 @@ ggplot(arg_agro4,aes(Uso_Suelo,He_promedioR, fill =Uso_Suelo )) +
 geom_col(alpha = 1, width =.9) +
 theme_minimal()+
 coord_flip()+
-facet_geo(~ Provincia, grid = argentina_grid2, scales= "free")+ 
+facet_geo(~ Provincia, grid = argentina_grid2)+ 
 labs(title = "Argentina: Usos de Suelo por provincia", caption ="Fuente: https://data.buenosaires.gob.ar/dataset/espacios-verdes",fill= "Usos de Suelo",
        x = "", 
        y = "") +
@@ -578,66 +589,13 @@ legend.text = element_text (size = 6),
 plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"))
 ```
 
-
-```{r}
-
-```
+Las provincias de Buenos Aires, Córdoba, Santa Fe, Entre Ríos Tucumán y Misiones, presentan los promedios más altos de superficies destinadas al cultivo agropecuario y a pastizales, impactando en los niveles de emisión de GEI. 
 
 
+A través de la base de datos de emisiones de FAOSTAT y del Gobierno Nacional, fue posible analizar el tipo y la fuente de los principales gases de efecto invernadero (CO2, CH4 y N2O), provenientes de la producción agrícola y de las actividades asociadas con la explotación de la tierra, tanto a nivel nacional como regional y mundial, durante el período de 1990-2019/2020, identificando las principales tendencias y como estas impactan en la sociedad.
+
+Sumaría considerar para el presente análisis, los incendios de la biomasa forestal y la quema de suelos orgánicos, registrados por provincia para relacionar con el crecimiento de superficies cuyos usos se destinan a las actividades agropecuarias. Si bien en el país existe un marco normativo para la preservación de los bosques nativos, la regulación de las respectivas leyes es insuficiente.
+
+Los suelos son la base de la producción agropecuaria del país, pero atraviesan una importante transformación debido al crecimiento de la actividad agrícola y las nuevas formas de producción, que aceleran los procesos de degradación, desestimando los recursos ecosistémicos presentes en el medio natural. De ahí, la importancia de proponer otro tipo de producción igualmente competitiva en el mercado, pero de bajo impacto ambiental.
 
 
-
-
-
-
-Con respecto a con un 91,8 % del total, y dentro del mismo, el sector
-transporte figura con el 29,9 %, debido fundamentalmente a la quema de
-gas, gasolina y otros derivados del petróleo. La industria del cemento y
-las plantas de incineración de residuos representan el 6,4 % del total
-emitido, y como fuentes minoritarias, se encuentran la industria química
-y la industria metalúrgica con un 1,8 %.
-
-### **SUPERFICIES PROTEGIDAS**
-
-### **INCENDIOS**
-
-### **NORMATIVAS**
-
-
-
-Estimaciones agricolas Buenos Aires
-
-
-
-La base de datos de 
-
-
-La base de datos de emisiones de FAOSTAT proporciona una imagen completa
-del metano (CH4), nitroso Emisiones y remociones de óxido (N2O) y
-dióxido de carbono (CO2) de la producción agrícola y actividades
-asociadas de uso de la tierra a nivel nacional, regional y mundial.
-Ayuda a documentar la Principales tendencias e impactos de la
-alimentación y la agricultura en los gases de efecto invernadero (GEI)
-atmosféricos concentraciones durante el período 1961-2018. El uso de
-datos como insumo para la producción agrícola y ganadera informados por
-los países a la FAO, utilizando las directrices para los inventarios
-nacionales de GEI de la Panel Internacional sobre el Cambio Climático
-(IPCC, 2006) para estimar las emisiones. Este resumen analítico se
-centra en las tendencias generales durante el período 2000-2018.
-Emisiones por incendios de biomasa forestal y la quema de suelos
-orgánicos en los trópicos húmedos está incluida en estas estimaciones.
-Más en profundidad análisis sobre las emisiones y absorciones de GEI
-para la ganadería, los bosques y la degradación de los suelos orgánicos
-se analizan en otros informes y publicaciones revisadas por pares.
-
-arg_gei_3<-arg_gei_1%>%
-group_by(Año, Origen) %>%
-summarise(Total_KT_CO2=sum(KToneladas_CO2, na.rm = TRUE))
-ggplot(arg_gei_3)+
-
-geom_col(aes(x = factor(Año), y =Total_KT_CO2, fill=factor(Origen)), bins=50)+
-facet_grid(Origen~., scales = 'free')
-labs(title = "Niveles según fuente de origen", subtitle = "Período: 1990-2019",
-     caption= "Fuente: https://www.fao.org/faostat/
-     es/#data",x="Años", y ="", fill= "")+
-theme(legend.position="none", axis.text.x = element_text(angle = 45, hjust = 1, size = 5),axis.text.y = element_text(size = 6), plot.margin = margin(0.25, 1, 0.25, 0.1, "cm"),plot.subtitle = element_text(size=7.5),plot.caption=element_text(size=5))
